@@ -1,0 +1,5478 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>피로 잇다 - 제주 헌혈 매칭 플랫폼</title>
+
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+  >
+
+  <style>
+    :root {
+      --red: #d6294a;
+      --dark: #a71935;
+      --light: #fff0f3;
+      --green: #15845a;
+      --blue: #2864d8;
+      --amber: #b46b00;
+      --bg: #f5f7fa;
+      --line: #e1e6ed;
+      --text: #222831;
+      --sub: #68717d;
+      --shadow: 0 10px 28px rgba(28, 35, 45, 0.09);
+      --r: 16px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family:
+        Pretendard,
+        "Apple SD Gothic Neo",
+        "Malgun Gothic",
+        sans-serif;
+
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.55;
+    }
+
+    button,
+    input,
+    select,
+    textarea {
+      font: inherit;
+    }
+
+    button {
+      border: 0;
+      cursor: pointer;
+    }
+
+    button:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: var(--red);
+      color: #ffffff;
+      box-shadow: 0 3px 14px rgba(160, 25, 52, 0.25);
+    }
+
+    .topbar-inner {
+      max-width: 1180px;
+      margin: auto;
+      padding: 0.72rem 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+
+    .brand {
+      font-weight: 900;
+      font-size: 1.1rem;
+    }
+
+    .brand small {
+      font-size: 0.7rem;
+      font-weight: 500;
+      opacity: 0.85;
+      margin-left: 0.3rem;
+    }
+
+    .top-actions {
+      margin-left: auto;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .profile {
+      padding: 0.38rem 0.62rem;
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      background: rgba(255, 255, 255, 0.15);
+      border-radius: 999px;
+      font-size: 0.72rem;
+      font-weight: 800;
+    }
+
+    .top-btn {
+      padding: 0.43rem 0.68rem;
+      border-radius: 9px;
+      background: #ffffff;
+      color: var(--dark);
+      font-size: 0.73rem;
+      font-weight: 900;
+    }
+
+    .top-btn.ghost {
+      background: transparent;
+      color: #ffffff;
+      border: 1px solid rgba(255, 255, 255, 0.5);
+    }
+
+    .hero {
+      background:
+        linear-gradient(
+          135deg,
+          #ffffff,
+          #fff6f8 58%,
+          #fbe4e9
+        );
+
+      border-bottom: 1px solid #efdce1;
+    }
+
+    .hero-inner {
+      max-width: 1180px;
+      margin: auto;
+      padding: 1.55rem 1rem;
+      display: grid;
+      grid-template-columns: 1.3fr 0.7fr;
+      gap: 1rem;
+      align-items: center;
+    }
+
+    .kicker {
+      display: inline-block;
+      padding: 0.25rem 0.6rem;
+      border-radius: 999px;
+      background: var(--light);
+      color: var(--dark);
+      border: 1px solid #f3bec9;
+      font-size: 0.71rem;
+      font-weight: 900;
+      margin-bottom: 0.5rem;
+    }
+
+    h1 {
+      font-size: clamp(1.75rem, 4vw, 2.65rem);
+      line-height: 1.14;
+      letter-spacing: -0.045em;
+    }
+
+    h1 strong {
+      color: var(--red);
+    }
+
+    .hero p {
+      margin-top: 0.65rem;
+      color: var(--sub);
+      font-size: 0.88rem;
+    }
+
+    .flow {
+      display: flex;
+      gap: 0.35rem;
+      flex-wrap: wrap;
+      margin-top: 0.8rem;
+    }
+
+    .flow span {
+      background: #ffffff;
+      border: 1px solid var(--line);
+      border-radius: 9px;
+      padding: 0.34rem 0.48rem;
+      font-size: 0.66rem;
+      font-weight: 800;
+    }
+
+    .hero-card,
+    .panel,
+    .toolbar,
+    .request-card,
+    .chat-shell,
+    .admin-col {
+      background: #ffffff;
+      border: 1px solid var(--line);
+      border-radius: var(--r);
+      box-shadow: var(--shadow);
+    }
+
+    .hero-card {
+      padding: 1rem;
+    }
+
+    .hero-card h3 {
+      font-size: 0.86rem;
+      margin-bottom: 0.6rem;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0.45rem;
+    }
+
+    .stat {
+      background: var(--bg);
+      padding: 0.62rem;
+      text-align: center;
+      border-radius: 11px;
+    }
+
+    .stat strong {
+      display: block;
+      font-size: 1.22rem;
+    }
+
+    .stat span {
+      font-size: 0.63rem;
+      color: var(--sub);
+    }
+
+    .notice-wrap {
+      max-width: 1180px;
+      margin: 0.85rem auto 0;
+      padding: 0 1rem;
+    }
+
+    .notice {
+      background: #ffffff;
+      border: 1px solid var(--line);
+      border-left: 5px solid var(--red);
+      border-radius: 13px;
+      padding: 0.7rem 0.8rem;
+      font-size: 0.78rem;
+      color: var(--sub);
+    }
+
+    .urgent-banner {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.6rem;
+      background: #8f172d;
+      color: #ffffff;
+      border-radius: 13px;
+      padding: 0.72rem 0.82rem;
+      box-shadow: var(--shadow);
+    }
+
+    .urgent-banner p {
+      flex: 1;
+      font-size: 0.73rem;
+      white-space: pre-wrap;
+    }
+
+    .urgent-banner button {
+      background: rgba(255, 255, 255, 0.17);
+      color: #ffffff;
+      border: 1px solid rgba(255, 255, 255, 0.35);
+      border-radius: 8px;
+      padding: 0.25rem 0.45rem;
+    }
+
+    .layout {
+      max-width: 1180px;
+      margin: 1rem auto 3rem;
+      padding: 0 1rem;
+      display: grid;
+      grid-template-columns: 315px 1fr;
+      gap: 1rem;
+      align-items: start;
+    }
+
+    .sidebar {
+      display: grid;
+      gap: 0.8rem;
+      position: sticky;
+      top: 68px;
+    }
+
+    .panel {
+      overflow: hidden;
+    }
+
+    .panel-head {
+      padding: 0.78rem 0.85rem;
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .panel-head h2 {
+      font-size: 0.88rem;
+    }
+
+    .panel-body {
+      padding: 0.8rem 0.85rem;
+    }
+
+    #map {
+      height: 250px;
+    }
+
+    .map-note,
+    .help {
+      font-size: 0.66rem;
+      color: var(--sub);
+    }
+
+    .nearest {
+      margin-top: 0.5rem;
+      background: var(--light);
+      color: var(--dark);
+      border: 1px solid #f0c1cb;
+      border-radius: 10px;
+      padding: 0.55rem;
+      font-size: 0.71rem;
+      font-weight: 800;
+    }
+
+    .guide {
+      display: grid;
+      gap: 0.42rem;
+    }
+
+    .guide-item {
+      background: var(--bg);
+      border-radius: 10px;
+      padding: 0.55rem;
+      font-size: 0.7rem;
+    }
+
+    .guide-item strong {
+      display: block;
+    }
+
+    .guide-item span {
+      color: var(--sub);
+    }
+
+    .account {
+      padding: 0.65rem;
+      border-radius: 11px;
+      font-size: 0.71rem;
+    }
+
+    .account.donor {
+      background: #eef4ff;
+      color: #2552a0;
+    }
+
+    .account.hospital {
+      background: #ebf8f2;
+      color: #176440;
+    }
+
+    .account.admin {
+      background: #f2eeff;
+      color: #5e43a1;
+    }
+
+    .toolbar {
+      padding: 0.68rem;
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+      flex-wrap: wrap;
+      margin-bottom: 0.8rem;
+    }
+
+    .tabs {
+      display: flex;
+      gap: 0.22rem;
+      background: var(--bg);
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 3px;
+    }
+
+    .tab {
+      background: transparent;
+      color: var(--sub);
+      padding: 0.4rem 0.65rem;
+      border-radius: 999px;
+      font-size: 0.71rem;
+      font-weight: 850;
+    }
+
+    .tab.active {
+      background: var(--red);
+      color: #ffffff;
+    }
+
+    .chat-badge {
+      display: inline-flex;
+      min-width: 17px;
+      height: 17px;
+      align-items: center;
+      justify-content: center;
+      background: #ffffff;
+      color: var(--dark);
+      border-radius: 999px;
+      padding: 0 0.28rem;
+      font-size: 0.58rem;
+    }
+
+    .toolbar input,
+    .toolbar select {
+      border: 1px solid var(--line);
+      border-radius: 9px;
+      background: #ffffff;
+      padding: 0.42rem 0.52rem;
+      font-size: 0.72rem;
+    }
+
+    .toolbar input {
+      min-width: 165px;
+      flex: 1;
+    }
+
+    .spacer {
+      flex: 1;
+    }
+
+    .primary,
+    .secondary,
+    .btn {
+      padding: 0.48rem 0.7rem;
+      border-radius: 9px;
+      font-size: 0.72rem;
+      font-weight: 900;
+    }
+
+    .primary {
+      background: var(--red);
+      color: #ffffff;
+    }
+
+    .secondary {
+      background: #ffffff;
+      color: var(--text);
+      border: 1px solid var(--line);
+    }
+
+    .section-title {
+      display: flex;
+      justify-content: space-between;
+      align-items: end;
+      gap: 0.5rem;
+      margin: 0.1rem 0.1rem 0.62rem;
+    }
+
+    .section-title h2 {
+      font-size: 1rem;
+    }
+
+    .section-title p {
+      font-size: 0.68rem;
+      color: var(--sub);
+    }
+
+    .request-list {
+      display: grid;
+      gap: 0.7rem;
+    }
+
+    .request-card {
+      overflow: hidden;
+    }
+
+    .request-card.pending {
+      border-color: #e9c673;
+    }
+
+    .request-card.closed {
+      opacity: 0.82;
+    }
+
+    .card-main {
+      padding: 0.82rem;
+      display: flex;
+      gap: 0.72rem;
+      align-items: flex-start;
+    }
+
+    .blood {
+      width: 56px;
+      height: 56px;
+      border-radius: 14px;
+      background:
+        linear-gradient(
+          145deg,
+          var(--red),
+          var(--dark)
+        );
+
+      color: #ffffff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.18rem;
+      font-weight: 900;
+      flex: 0 0 auto;
+    }
+
+    .card-body {
+      min-width: 0;
+      flex: 1;
+    }
+
+    .tags {
+      display: flex;
+      gap: 0.3rem;
+      flex-wrap: wrap;
+      margin-bottom: 0.24rem;
+    }
+
+    .tag {
+      padding: 0.13rem 0.38rem;
+      border-radius: 999px;
+      font-size: 0.59rem;
+      font-weight: 900;
+    }
+
+    .tag.red {
+      background: var(--light);
+      color: var(--dark);
+    }
+
+    .tag.green {
+      background: #ebf8f2;
+      color: var(--green);
+    }
+
+    .tag.blue {
+      background: #edf3ff;
+      color: var(--blue);
+    }
+
+    .tag.amber {
+      background: #fff6e6;
+      color: var(--amber);
+    }
+
+    .tag.gray {
+      background: #eef0f3;
+      color: #68717d;
+    }
+
+    .card-title {
+      font-size: 0.98rem;
+      font-weight: 900;
+    }
+
+    .meta {
+      display: flex;
+      gap: 0.6rem;
+      flex-wrap: wrap;
+      margin-top: 0.28rem;
+      font-size: 0.69rem;
+      color: var(--sub);
+    }
+
+    .card-actions {
+      display: flex;
+      gap: 0.32rem;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .btn {
+      background: #eef1f5;
+      color: #3d4652;
+      padding: 0.4rem 0.58rem;
+      font-size: 0.66rem;
+    }
+
+    .btn.red {
+      background: var(--red);
+      color: #ffffff;
+    }
+
+    .btn.green {
+      background: var(--green);
+      color: #ffffff;
+    }
+
+    .btn.danger {
+      background: #7f2032;
+      color: #ffffff;
+    }
+
+    .btn.amber {
+      background: #e49a18;
+      color: #ffffff;
+    }
+
+    .progress-wrap {
+      padding: 0 0.82rem 0.76rem;
+    }
+
+    .progress-head {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.66rem;
+      font-weight: 800;
+      margin-bottom: 0.26rem;
+    }
+
+    .progress {
+      height: 8px;
+      background: #edf0f3;
+      border-radius: 999px;
+      overflow: hidden;
+    }
+
+    .progress span {
+      display: block;
+      height: 100%;
+      background:
+        linear-gradient(
+          90deg,
+          var(--red),
+          #ef7188
+        );
+    }
+
+    .detail {
+      display: none;
+      border-top: 1px dashed var(--line);
+      background: #fafbfc;
+      padding: 0.76rem 0.82rem;
+    }
+
+    .detail.show {
+      display: block;
+    }
+
+    .detail-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.52rem;
+    }
+
+    .detail-box {
+      background: #ffffff;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 0.58rem;
+      font-size: 0.7rem;
+    }
+
+    .detail-box p {
+      color: var(--sub);
+      white-space: pre-wrap;
+    }
+
+    .applications {
+      display: grid;
+      gap: 0.38rem;
+      margin-top: 0.55rem;
+    }
+
+    .application {
+      background: #ffffff;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 0.52rem;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      flex-wrap: wrap;
+      font-size: 0.68rem;
+    }
+
+    .application .right {
+      margin-left: auto;
+      display: flex;
+      gap: 0.28rem;
+    }
+
+    .empty {
+      background: #ffffff;
+      border: 1px dashed #cbd2db;
+      border-radius: 14px;
+      padding: 1.8rem 1rem;
+      text-align: center;
+      color: var(--sub);
+      font-size: 0.78rem;
+    }
+
+    .admin-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0.65rem;
+    }
+
+    .admin-col {
+      padding: 0.68rem;
+    }
+
+    .admin-col h3 {
+      font-size: 0.81rem;
+      margin-bottom: 0.45rem;
+    }
+
+    .admin-item {
+      border-top: 1px solid var(--line);
+      padding: 0.55rem 0;
+    }
+
+    .admin-item:first-of-type {
+      border-top: 0;
+    }
+
+    .admin-item strong {
+      display: block;
+      font-size: 0.73rem;
+    }
+
+    .admin-item p {
+      font-size: 0.65rem;
+      color: var(--sub);
+      white-space: pre-wrap;
+      margin: 0.16rem 0 0.36rem;
+    }
+
+    .chat-shell {
+      overflow: hidden;
+    }
+
+    .chat-head {
+      padding: 0.78rem 0.85rem;
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 0.6rem;
+      flex-wrap: wrap;
+    }
+
+    .chat-head p {
+      font-size: 0.66rem;
+      color: var(--sub);
+    }
+
+    .chat-list {
+      height: min(52vh, 520px);
+      min-height: 330px;
+      overflow-y: auto;
+      padding: 0.82rem;
+      background: #f8f9fb;
+      display: grid;
+      align-content: start;
+      gap: 0.55rem;
+    }
+
+    .chat-message {
+      max-width: 82%;
+      background: #ffffff;
+      border: 1px solid var(--line);
+      border-radius: 13px;
+      padding: 0.56rem 0.65rem;
+    }
+
+    .chat-message.mine {
+      margin-left: auto;
+      background: var(--light);
+      border-color: #f2c0cb;
+    }
+
+    .chat-message.urgent {
+      max-width: 100%;
+      background: #8f172d;
+      color: #ffffff;
+      border-color: #8f172d;
+    }
+
+    .chat-meta {
+      display: flex;
+      gap: 0.32rem;
+      flex-wrap: wrap;
+      align-items: center;
+      margin-bottom: 0.2rem;
+      font-size: 0.6rem;
+      color: var(--sub);
+    }
+
+    .chat-message.urgent .chat-meta {
+      color: rgba(255, 255, 255, 0.82);
+    }
+
+    .chat-text {
+      font-size: 0.75rem;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .chat-delete {
+      margin-left: auto;
+      background: transparent;
+      color: inherit;
+      font-size: 0.59rem;
+      text-decoration: underline;
+    }
+
+    .chat-form {
+      padding: 0.72rem;
+      border-top: 1px solid var(--line);
+      display: grid;
+      gap: 0.45rem;
+    }
+
+    .chat-form textarea {
+      width: 100%;
+      min-height: 70px;
+      max-height: 160px;
+      resize: vertical;
+      border: 1px solid #cbd3dd;
+      border-radius: 10px;
+      padding: 0.6rem;
+    }
+
+    .chat-form-row {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+
+    .urgent-check {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+      font-size: 0.68rem;
+      font-weight: 850;
+      color: var(--dark);
+    }
+
+    .chat-guide {
+      color: var(--sub);
+      font-size: 0.62rem;
+      flex: 1;
+    }
+
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 300;
+      background: rgba(24, 29, 37, 0.6);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+    }
+
+    .modal-overlay.show {
+      display: flex;
+    }
+
+    .modal {
+      width: min(720px, 100%);
+      max-height: 93vh;
+      overflow: auto;
+      background: #ffffff;
+      border-radius: 20px;
+      box-shadow: 0 25px 80px rgba(0, 0, 0, 0.28);
+    }
+
+    .modal.wide {
+      width: min(1000px, 100%);
+    }
+
+    .modal-head {
+      position: sticky;
+      top: 0;
+      z-index: 2;
+      background: #ffffff;
+      border-bottom: 1px solid var(--line);
+      padding: 0.85rem 0.95rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .close {
+      background: #eef1f5;
+      border-radius: 9px;
+      padding: 0.38rem 0.58rem;
+    }
+
+    .modal-body {
+      padding: 0.95rem;
+    }
+
+    .auth-intro {
+      text-align: center;
+      margin-bottom: 0.75rem;
+    }
+
+    .auth-intro h2 {
+      font-size: 1.15rem;
+    }
+
+    .auth-intro p {
+      font-size: 0.73rem;
+      color: var(--sub);
+    }
+
+    .auth-role-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0.6rem;
+    }
+
+    .auth-card {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 0.75rem;
+    }
+
+    .auth-card h3 {
+      font-size: 0.87rem;
+      margin: 0.28rem 0;
+    }
+
+    .auth-card p {
+      font-size: 0.67rem;
+      color: var(--sub);
+      min-height: 55px;
+    }
+
+    .auth-card button {
+      width: 100%;
+      margin-top: 0.4rem;
+    }
+
+    .auth-step {
+      display: none;
+      margin-top: 0.75rem;
+      border-top: 1px solid var(--line);
+      padding-top: 0.75rem;
+    }
+
+    .auth-step.show {
+      display: block;
+    }
+
+    .step-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 0.6rem;
+    }
+
+    .step-head span {
+      display: block;
+      font-size: 0.67rem;
+      color: var(--sub);
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 0.62rem;
+    }
+
+    .field {
+      display: grid;
+      gap: 0.25rem;
+    }
+
+    .field.full {
+      grid-column: 1 / -1;
+    }
+
+    .field label {
+      font-size: 0.71rem;
+      font-weight: 850;
+    }
+
+    .field input,
+    .field select,
+    .field textarea {
+      width: 100%;
+      border: 1px solid #cbd3dd;
+      border-radius: 9px;
+      padding: 0.56rem 0.62rem;
+      background: #ffffff;
+    }
+
+    .field textarea {
+      min-height: 88px;
+      resize: vertical;
+    }
+
+    .form-error {
+      display: none;
+      background: var(--light);
+      color: #98203a;
+      border: 1px solid #efbdc7;
+      border-radius: 9px;
+      padding: 0.52rem 0.62rem;
+      margin-bottom: 0.55rem;
+      font-size: 0.7rem;
+    }
+
+    .form-error.show {
+      display: block;
+    }
+
+    .modal-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 0.42rem;
+      margin-top: 0.75rem;
+    }
+
+    .loading {
+      position: fixed;
+      inset: 0;
+      z-index: 500;
+      background: rgba(255, 255, 255, 0.73);
+      display: none;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .loading.show {
+      display: flex;
+    }
+
+    .loading div {
+      background: #ffffff;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 0.82rem 1rem;
+      box-shadow: var(--shadow);
+      font-weight: 850;
+    }
+
+    .toast {
+      position: fixed;
+      right: 1rem;
+      bottom: 1rem;
+      z-index: 600;
+      background: #262c35;
+      color: #ffffff;
+      padding: 0.68rem 0.82rem;
+      border-radius: 10px;
+      box-shadow: var(--shadow);
+      opacity: 0;
+      transform: translateY(8px);
+      transition: 0.2s;
+      pointer-events: none;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: none;
+    }
+
+    footer {
+      text-align: center;
+      color: var(--sub);
+      font-size: 0.66rem;
+      padding: 1rem 1rem 2.2rem;
+    }
+
+    @media (max-width: 900px) {
+      .hero-inner,
+      .layout {
+        grid-template-columns: 1fr;
+      }
+
+      .hero-card {
+        display: none;
+      }
+
+      .sidebar {
+        position: static;
+      }
+
+      .admin-grid,
+      .auth-role-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 600px) {
+      .brand small {
+        display: none;
+      }
+
+      .profile {
+        max-width: 115px;
+        overflow: hidden;
+        white-space: nowrap;
+      }
+
+      .topbar-inner {
+        padding: 0.6rem;
+      }
+
+      .layout,
+      .notice-wrap,
+      .hero-inner {
+        padding-left: 0.68rem;
+        padding-right: 0.68rem;
+      }
+
+      .form-grid,
+      .detail-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .field.full {
+        grid-column: auto;
+      }
+
+      .card-main {
+        flex-wrap: wrap;
+      }
+
+      .card-actions {
+        width: 100%;
+        justify-content: flex-start;
+      }
+
+      .toolbar input {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="brand">
+        🩸 피로 잇다
+        <small>제주 헌혈 매칭 플랫폼</small>
+      </div>
+
+      <div class="top-actions">
+        <span
+          class="profile hidden"
+          id="profileChip"
+        ></span>
+
+        <button
+          class="top-btn"
+          id="openAuth"
+        >
+          로그인·회원가입
+        </button>
+
+        <button
+          class="top-btn ghost hidden"
+          id="logoutBtn"
+        >
+          로그아웃
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <section class="hero">
+    <div class="hero-inner">
+      <div>
+        <span class="kicker">
+          병원 인증부터 모집 완료까지
+        </span>
+
+        <h1>
+          필요한 혈액과
+          <strong>도울 사람을 잇습니다.</strong>
+        </h1>
+
+        <p>
+          헌혈자 회원가입, 병원 기관 인증, 관리자 승인,
+          참여 신청과 병원 승인까지 하나의 흐름으로 연결합니다.
+        </p>
+
+        <div class="flow">
+          <span>회원가입</span>
+          <span>병원 인증</span>
+          <span>요청 승인</span>
+          <span>헌혈 참여</span>
+          <span>모집 완료</span>
+        </div>
+      </div>
+
+      <div class="hero-card">
+        <h3>실시간 플랫폼 현황</h3>
+
+        <div class="stats">
+          <div class="stat">
+            <strong id="statOpen">0</strong>
+            <span>모집 중</span>
+          </div>
+
+          <div class="stat">
+            <strong id="statMatched">0</strong>
+            <span>승인 참여</span>
+          </div>
+
+          <div class="stat">
+            <strong id="statHospitals">0</strong>
+            <span>인증 병원</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="notice-wrap">
+    <div
+      class="notice"
+      id="notice"
+    >
+      로그인하면 역할별 기능이 활성화됩니다.
+    </div>
+  </div>
+
+  <div
+    class="notice-wrap hidden"
+    id="urgentBannerWrap"
+  >
+    <div class="urgent-banner">
+      <div>🚨</div>
+
+      <div style="flex: 1">
+        <strong id="urgentBannerTitle">
+          긴급 혈액 알림
+        </strong>
+
+        <p id="urgentBannerText"></p>
+      </div>
+
+      <button
+        type="button"
+        id="dismissUrgentBtn"
+      >
+        닫기
+      </button>
+    </div>
+  </div>
+
+  <main class="layout">
+    <aside class="sidebar">
+      <section class="panel">
+        <div class="panel-head">
+          <h2>📍 헌혈 장소 지도</h2>
+          <span id="nowText"></span>
+        </div>
+
+        <div id="map"></div>
+
+        <div class="panel-body">
+          <div class="map-note">
+            지도 위치는 안내용입니다.
+            방문 전 운영 여부와 헌혈 가능 시간을 확인하세요.
+          </div>
+
+          <div
+            class="nearest"
+            id="nearestText"
+          >
+            현재 위치를 확인하고 있습니다.
+          </div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-head">
+          <h2>역할별 이용 방법</h2>
+        </div>
+
+        <div class="panel-body guide">
+          <div class="guide-item">
+            <strong>🩸 헌혈자</strong>
+            <span>회원가입 후 요청 확인과 참여 신청</span>
+          </div>
+
+          <div class="guide-item">
+            <strong>🏥 인증병원</strong>
+            <span>인증 승인 후 요청 등록과 신청자 관리</span>
+          </div>
+
+          <div class="guide-item">
+            <strong>🛡️ 관리자</strong>
+            <span>병원 인증, 요청 승인, 신고 처리</span>
+          </div>
+        </div>
+      </section>
+
+      <section
+        class="panel hidden"
+        id="accountPanel"
+      >
+        <div class="panel-head">
+          <h2>내 계정</h2>
+        </div>
+
+        <div class="panel-body">
+          <div
+            class="account"
+            id="accountBox"
+          ></div>
+        </div>
+      </section>
+    </aside>
+
+    <section class="content">
+      <div class="toolbar">
+        <div class="tabs">
+          <button
+            class="tab active"
+            data-tab="requests"
+          >
+            헌혈 요청
+          </button>
+
+          <button
+            class="tab"
+            data-tab="my"
+          >
+            내 활동
+          </button>
+
+          <button
+            class="tab"
+            data-tab="chat"
+          >
+            실시간 채팅
+
+            <span
+              class="chat-badge hidden"
+              id="chatBadge"
+            >
+              0
+            </span>
+          </button>
+
+          <button
+            class="tab hidden"
+            id="adminTab"
+            data-tab="admin"
+          >
+            관리자 관리
+          </button>
+        </div>
+
+        <input
+          id="searchInput"
+          placeholder="병원명, 장소, 제목 검색"
+        >
+
+        <select id="bloodFilter">
+          <option value="all">전체 혈액형</option>
+          <option>O+</option>
+          <option>O-</option>
+          <option>A+</option>
+          <option>A-</option>
+          <option>B+</option>
+          <option>B-</option>
+          <option>AB+</option>
+          <option>AB-</option>
+        </select>
+
+        <select id="statusFilter">
+          <option value="all">전체 상태</option>
+          <option value="open">모집 중</option>
+          <option value="closed">모집 완료</option>
+          <option value="expired">마감</option>
+        </select>
+
+        <div class="spacer"></div>
+
+        <button
+          class="primary hidden"
+          id="createRequestBtn"
+        >
+          헌혈 요청 등록
+        </button>
+
+        <button
+          class="secondary"
+          id="refreshBtn"
+        >
+          새로고침
+        </button>
+      </div>
+
+      <section id="requestsView">
+        <div class="section-title">
+          <div>
+            <h2>공개 헌혈 요청</h2>
+
+            <p>
+              관리자가 승인한 요청만 헌혈자에게 공개됩니다.
+            </p>
+          </div>
+
+          <strong id="requestCount">0건</strong>
+        </div>
+
+        <div
+          class="request-list"
+          id="requestList"
+        ></div>
+      </section>
+
+      <section
+        class="hidden"
+        id="myView"
+      >
+        <div class="section-title">
+          <div>
+            <h2 id="myTitle">내 활동</h2>
+            <p id="myDesc"></p>
+          </div>
+        </div>
+
+        <div
+          class="request-list"
+          id="myList"
+        ></div>
+      </section>
+
+      <section
+        class="hidden"
+        id="chatView"
+      >
+        <div class="section-title">
+          <div>
+            <h2>회원 공용 채팅방</h2>
+
+            <p>
+              가입 회원이 함께 봅니다.
+              환자 이름·주민번호 등 개인정보는 적지 마세요.
+            </p>
+          </div>
+        </div>
+
+        <div class="chat-shell">
+          <div class="chat-head">
+            <div>
+              <strong>🩸 피로 잇다 실시간 채팅</strong>
+              <p>약 20초마다 새 메시지를 확인합니다.</p>
+            </div>
+
+            <button
+              class="secondary"
+              type="button"
+              id="notificationBtn"
+            >
+              긴급 알림 허용
+            </button>
+          </div>
+
+          <div
+            class="chat-list"
+            id="chatList"
+          >
+            <div class="empty">
+              로그인 후 채팅을 이용할 수 있습니다.
+            </div>
+          </div>
+
+          <form
+            class="chat-form"
+            id="chatForm"
+          >
+            <textarea
+              id="chatInput"
+              maxlength="500"
+              placeholder="회원들과 나눌 내용을 입력하세요."
+              required
+            ></textarea>
+
+            <div class="chat-form-row">
+              <label
+                class="urgent-check hidden"
+                id="chatUrgentWrap"
+              >
+                <input
+                  type="checkbox"
+                  id="chatUrgent"
+                >
+
+                긴급 혈액 알림으로 보내기
+              </label>
+
+              <span class="chat-guide">
+                긴급 알림은 인증 병원과 관리자만 사용할 수 있습니다.
+              </span>
+
+              <button
+                class="primary"
+                type="submit"
+              >
+                보내기
+              </button>
+            </div>
+          </form>
+        </div>
+      </section>
+
+      <section
+        class="hidden"
+        id="adminView"
+      >
+        <div class="section-title">
+          <div>
+            <h2>관리자 검토</h2>
+
+            <p>
+              병원 인증, 요청 승인, 신고 게시물을 처리합니다.
+            </p>
+          </div>
+        </div>
+
+        <div class="admin-grid">
+          <div class="admin-col">
+            <h3>
+              🏥 병원 인증 대기
+              <span id="hospitalPendingCount">0</span>
+            </h3>
+
+            <div id="hospitalAdminList"></div>
+          </div>
+
+          <div class="admin-col">
+            <h3>
+              📋 요청 승인 대기
+              <span id="requestPendingCount">0</span>
+            </h3>
+
+            <div id="requestAdminList"></div>
+          </div>
+
+          <div class="admin-col">
+            <h3>
+              🚨 신고 관리
+              <span id="reportCount">0</span>
+            </h3>
+
+            <div id="reportAdminList"></div>
+          </div>
+        </div>
+      </section>
+    </section>
+  </main>
+
+  <footer>
+    실제 헌혈 가능 여부는 의료기관의 문진과 검사로 결정됩니다.
+  </footer>
+
+  <div
+    class="modal-overlay"
+    id="authModal"
+  >
+    <div class="modal wide">
+      <div class="modal-head">
+        <h3>로그인·회원가입</h3>
+
+        <button
+          class="close"
+          data-close="authModal"
+        >
+          ✕
+        </button>
+      </div>
+
+      <div class="modal-body">
+        <div id="authMenu">
+          <div class="auth-intro">
+            <h2>어떤 계정으로 시작할까요?</h2>
+
+            <p>
+              각 역할은 서로 다른 가입과 승인 절차를 거칩니다.
+            </p>
+          </div>
+
+          <div class="auth-role-grid">
+            <div class="auth-card">
+              <div>🩸</div>
+              <h3>헌혈자</h3>
+
+              <p>
+                회원가입 후 요청 확인과 참여 신청을 이용합니다.
+              </p>
+
+              <button
+                class="primary"
+                data-auth="donorSignupStep"
+              >
+                헌혈자 회원가입
+              </button>
+
+              <button
+                class="secondary"
+                data-auth="donorLoginStep"
+              >
+                헌혈자 로그인
+              </button>
+            </div>
+
+            <div class="auth-card">
+              <div>🏥</div>
+              <h3>인증병원</h3>
+
+              <p>
+                병원 계정을 만들고 기관 인증을 신청합니다.
+              </p>
+
+              <button
+                class="primary"
+                data-auth="hospitalSignupStep"
+              >
+                병원 회원가입·인증
+              </button>
+
+              <button
+                class="secondary"
+                data-auth="hospitalLoginStep"
+              >
+                병원 로그인
+              </button>
+            </div>
+
+            <div class="auth-card">
+              <div>🛡️</div>
+              <h3>관리자</h3>
+
+              <p>
+                지정 이메일과 인증코드로 관리자 기능을 엽니다.
+              </p>
+
+              <button
+                class="primary"
+                data-auth="adminLoginStep"
+              >
+                관리자 로그인
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div
+          class="auth-step"
+          id="donorSignupStep"
+        >
+          <div class="step-head">
+            <div>
+              <strong>헌혈자 회원가입</strong>
+
+              <span>
+                아이디·비밀번호와 기본 정보를 등록합니다.
+              </span>
+            </div>
+
+            <button
+              class="secondary"
+              data-auth-back
+            >
+              다른 역할
+            </button>
+          </div>
+
+          <div
+            class="form-error"
+            id="donorSignupError"
+          ></div>
+
+          <form id="donorSignupForm">
+            <div class="form-grid">
+              <div class="field">
+                <label>아이디</label>
+
+                <input
+                  id="donorSignupId"
+                  minlength="4"
+                  maxlength="24"
+                  required
+                >
+              </div>
+
+              <div class="field">
+                <label>이름 또는 닉네임</label>
+
+                <input
+                  id="donorName"
+                  maxlength="40"
+                  required
+                >
+              </div>
+
+              <div class="field">
+                <label>비밀번호</label>
+
+                <input
+                  id="donorPassword"
+                  type="password"
+                  minlength="8"
+                  maxlength="72"
+                  required
+                >
+              </div>
+
+              <div class="field">
+                <label>비밀번호 확인</label>
+
+                <input
+                  id="donorPassword2"
+                  type="password"
+                  minlength="8"
+                  maxlength="72"
+                  required
+                >
+              </div>
+
+              <div class="field">
+                <label>혈액형</label>
+
+                <select id="donorBlood">
+                  <option>O+</option>
+                  <option>O-</option>
+                  <option>A+</option>
+                  <option>A-</option>
+                  <option>B+</option>
+                  <option>B-</option>
+                  <option>AB+</option>
+                  <option>AB-</option>
+                </select>
+              </div>
+
+              <div class="field">
+                <label>거주 지역</label>
+
+                <input
+                  id="donorRegion"
+                  placeholder="예: 제주시"
+                  required
+                >
+              </div>
+
+              <div class="field full">
+                <label>연락처</label>
+
+                <input
+                  id="donorPhone"
+                  placeholder="010-0000-0000"
+                  required
+                >
+              </div>
+
+              <div class="field full">
+                <label>알림 설정</label>
+
+                <select id="donorNotify">
+                  <option value="yes">
+                    일치 요청 알림 받기
+                  </option>
+
+                  <option value="no">
+                    알림 받지 않기
+                  </option>
+                </select>
+              </div>
+            </div>
+
+            <div class="modal-actions">
+              <button
+                class="primary"
+                type="submit"
+              >
+                회원가입
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <div
+          class="auth-step"
+          id="donorLoginStep"
+        >
+          <div class="step-head">
+            <div>
+              <strong>헌혈자 로그인</strong>
+
+              <span>
+                회원가입 때 만든 계정을 입력합니다.
+              </span>
+            </div>
+
+            <button
+              class="secondary"
+              data-auth-back
+            >
+              다른 역할
+            </button>
+          </div>
+
+          <div
+            class="form-error"
+            id="donorLoginError"
+          ></div>
+
+          <form id="donorLoginForm">
+            <div class="form-grid">
+              <div class="field full">
+                <label>아이디</label>
+                <input id="donorLoginId" required>
+              </div>
+
+              <div class="field full">
+                <label>비밀번호</label>
+
+                <input
+                  id="donorLoginPassword"
+                  type="password"
+                  required
+                >
+              </div>
+            </div>
+
+            <div class="modal-actions">
+              <button
+                class="primary"
+                type="submit"
+              >
+                로그인
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <div
+          class="auth-step"
+          id="hospitalSignupStep"
+        >
+          <div class="step-head">
+            <div>
+              <strong>병원 회원가입·인증 신청</strong>
+
+              <span>
+                계정과 기관 확인 정보를 등록합니다.
+              </span>
+            </div>
+
+            <button
+              class="secondary"
+              data-auth-back
+            >
+              다른 역할
+            </button>
+          </div>
+
+          <div
+            class="form-error"
+            id="hospitalSignupError"
+          ></div>
+
+          <form id="hospitalSignupForm">
+            <div class="form-grid">
+              <div class="field">
+                <label>병원 아이디</label>
+
+                <input
+                  id="hospitalSignupId"
+                  minlength="4"
+                  maxlength="24"
+                  required
+                >
+              </div>
+
+              <div class="field">
+                <label>업무용 이메일</label>
+
+                <input
+                  id="hospitalEmail"
+                  type="email"
+                  required
+                >
+              </div>
+
+              <div class="field">
+                <label>비밀번호</label>
+
+                <input
+                  id="hospitalPassword"
+                  type="password"
+                  minlength="8"
+                  maxlength="72"
+                  required
+                >
+              </div>
+
+              <div class="field">
+                <label>비밀번호 확인</label>
+
+                <input
+                  id="hospitalPassword2"
+                  type="password"
+                  minlength="8"
+                  maxlength="72"
+                  required
+                >
+              </div>
+
+              <div class="field">
+                <label>병원명</label>
+                <input id="hospitalName" required>
+              </div>
+
+              <div class="field">
+                <label>담당 부서</label>
+                <input id="hospitalDept" required>
+              </div>
+
+              <div class="field">
+                <label>담당자 이름</label>
+                <input id="hospitalManager" required>
+              </div>
+
+              <div class="field">
+                <label>직책</label>
+                <input id="hospitalPosition" required>
+              </div>
+
+              <div class="field">
+                <label>대표번호</label>
+
+                <input
+                  id="hospitalPhone"
+                  placeholder="064-000-0000"
+                  required
+                >
+              </div>
+
+              <div class="field full">
+                <label>기관 주소</label>
+                <input id="hospitalAddress" required>
+              </div>
+
+              <div class="field full">
+                <label>인증 확인 자료</label>
+
+                <textarea
+                  id="hospitalProof"
+                  placeholder="기관 홈페이지, 담당 부서, 확인 가능한 내용"
+                  required
+                ></textarea>
+              </div>
+            </div>
+
+            <div class="modal-actions">
+              <button
+                class="primary"
+                type="submit"
+              >
+                계정 생성·인증 신청
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <div
+          class="auth-step"
+          id="hospitalLoginStep"
+        >
+          <div class="step-head">
+            <div>
+              <strong>병원 로그인</strong>
+
+              <span>
+                승인 대기 중에도 같은 계정으로 로그인할 수 있습니다.
+              </span>
+            </div>
+
+            <button
+              class="secondary"
+              data-auth-back
+            >
+              다른 역할
+            </button>
+          </div>
+
+          <div
+            class="form-error"
+            id="hospitalLoginError"
+          ></div>
+
+          <form id="hospitalLoginForm">
+            <div class="form-grid">
+              <div class="field full">
+                <label>병원 아이디</label>
+                <input id="hospitalLoginId" required>
+              </div>
+
+              <div class="field full">
+                <label>비밀번호</label>
+
+                <input
+                  id="hospitalLoginPassword"
+                  type="password"
+                  required
+                >
+              </div>
+            </div>
+
+            <div class="modal-actions">
+              <button
+                class="primary"
+                type="submit"
+              >
+                로그인
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <div
+          class="auth-step"
+          id="adminLoginStep"
+        >
+          <div class="step-head">
+            <div>
+              <strong>관리자 로그인</strong>
+
+              <span>
+                지정 이메일과 인증코드를 입력합니다.
+              </span>
+            </div>
+
+            <button
+              class="secondary"
+              data-auth-back
+            >
+              다른 역할
+            </button>
+          </div>
+
+          <div
+            class="form-error"
+            id="adminLoginError"
+          ></div>
+
+          <form id="adminLoginForm">
+            <div class="form-grid">
+              <div class="field full">
+                <label>관리자 이메일</label>
+
+                <input
+                  id="adminEmail"
+                  value="gcheonyeon@gmail.com"
+                  readonly
+                >
+              </div>
+
+              <div class="field full">
+                <label>관리자 인증코드</label>
+
+                <input
+                  id="adminCode"
+                  type="password"
+                  inputmode="numeric"
+                  maxlength="4"
+                  required
+                >
+              </div>
+            </div>
+
+            <div class="modal-actions">
+              <button
+                class="primary"
+                type="submit"
+              >
+                관리자 로그인
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div
+    class="modal-overlay"
+    id="requestModal"
+  >
+    <div class="modal">
+      <div class="modal-head">
+        <h3>헌혈 요청 등록</h3>
+
+        <button
+          class="close"
+          data-close="requestModal"
+        >
+          ✕
+        </button>
+      </div>
+
+      <div class="modal-body">
+        <div
+          class="form-error"
+          id="requestError"
+        ></div>
+
+        <form id="requestForm">
+          <div class="form-grid">
+            <div class="field full">
+              <label>요청 제목</label>
+
+              <input
+                id="requestTitle"
+                maxlength="60"
+                placeholder="예: O+ 전혈 헌혈자 3명 모집"
+                required
+              >
+            </div>
+
+            <div class="field">
+              <label>혈액형</label>
+
+              <select id="requestBlood">
+                <option>O+</option>
+                <option>O-</option>
+                <option>A+</option>
+                <option>A-</option>
+                <option>B+</option>
+                <option>B-</option>
+                <option>AB+</option>
+                <option>AB-</option>
+              </select>
+            </div>
+
+            <div class="field">
+              <label>필요 인원</label>
+
+              <input
+                id="requestRequired"
+                type="number"
+                min="1"
+                max="20"
+                value="2"
+                required
+              >
+            </div>
+
+            <div class="field full">
+              <label>헌혈 장소</label>
+              <select id="requestPlace"></select>
+            </div>
+
+            <div class="field full">
+              <label>헌혈 조건</label>
+
+              <input
+                id="requestCriteria"
+                placeholder="예: 전혈 가능자, 문진 통과 필요"
+                required
+              >
+            </div>
+
+            <div class="field">
+              <label>마감 시간</label>
+
+              <input
+                id="requestDeadline"
+                type="datetime-local"
+                required
+              >
+            </div>
+
+            <div class="field">
+              <label>담당 연락처</label>
+
+              <input
+                id="requestPhone"
+                placeholder="064-000-0000"
+                required
+              >
+            </div>
+
+            <div class="field full">
+              <label>상황 설명</label>
+
+              <textarea
+                id="requestDescription"
+                maxlength="1200"
+                placeholder="환자 개인정보는 입력하지 마세요."
+              ></textarea>
+            </div>
+          </div>
+
+          <div class="modal-actions">
+            <button
+              class="secondary"
+              type="button"
+              data-close="requestModal"
+            >
+              취소
+            </button>
+
+            <button
+              class="primary"
+              type="submit"
+            >
+              관리자 승인 요청
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <iframe
+    id="backendFrame"
+    name="backendFrame"
+    class="hidden"
+  ></iframe>
+
+  <div
+    class="loading"
+    id="loading"
+  >
+    <div>서버와 통신 중입니다…</div>
+  </div>
+
+  <div
+    class="toast"
+    id="toast"
+  ></div>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+  <script>
+    (() => {
+      "use strict";
+
+      /*
+       * Apps Script를 새로 배포했다면
+       * 아래 주소를 새 /exec 주소로 교체하세요.
+       */
+      const WEB_APP_URL =
+        "https://script.google.com/macros/s/AKfycbwUkAciWnvQVPnt5BTpdEGh-GaBo4fecKC2aA0ot6oYPgB3hhfotvDIErSsr37MGB7bSQ/exec";
+
+      const ADMIN_EMAIL =
+        "gcheonyeon@gmail.com";
+
+      const SESSION_KEY =
+        "blood_match_session_v3";
+
+      const SOURCE =
+        "blood-match-backend";
+
+      const URGENT_SEEN =
+        "blood_match_urgent_seen_v1";
+
+      const URGENT_DISMISSED =
+        "blood_match_urgent_dismissed_v1";
+
+      const PLACES = [
+        {
+          name: "대한적십자사 제주혈액원",
+          type: "혈액원",
+          lat: 33.4849,
+          lng: 126.4774
+        },
+        {
+          name: "헌혈의 집 한라센터",
+          type: "헌혈의 집",
+          lat: 33.4906,
+          lng: 126.4889
+        },
+        {
+          name: "헌혈의 집 도남센터",
+          type: "헌혈의 집",
+          lat: 33.4995,
+          lng: 126.5263
+        },
+        {
+          name: "헌혈의 집 신제주센터",
+          type: "헌혈의 집",
+          lat: 33.4872,
+          lng: 126.4798
+        },
+        {
+          name: "헌혈의 집 서귀포센터",
+          type: "헌혈의 집",
+          lat: 33.2522,
+          lng: 126.5602
+        },
+        {
+          name: "제주대학교병원",
+          type: "병원",
+          lat: 33.467,
+          lng: 126.5453
+        },
+        {
+          name: "제주한라병원",
+          type: "병원",
+          lat: 33.4895,
+          lng: 126.4852
+        },
+        {
+          name: "서귀포의료원",
+          type: "병원",
+          lat: 33.255,
+          lng: 126.5648
+        }
+      ];
+
+      const $ =
+        function (id) {
+          return document.getElementById(id);
+        };
+
+      const pending = {};
+
+      let token =
+        sessionStorage.getItem(
+          SESSION_KEY
+        ) || "";
+
+      const state = {
+        user: null,
+        requests: [],
+        hospitalApplications: [],
+        chatMessages: [],
+        stats: {},
+        tab: "requests",
+        openId: null,
+
+        userPos: {
+          lat: 33.4996,
+          lng: 126.5312
+        }
+      };
+
+      function esc(value) {
+        return String(
+          value == null
+            ? ""
+            : value
+        ).replace(
+          /[&<>"']/g,
+
+          function (character) {
+            return {
+              "&": "&amp;",
+              "<": "&lt;",
+              ">": "&gt;",
+              '"': "&quot;",
+              "'": "&#39;"
+            }[character];
+          }
+        );
+      }
+
+      function backendConfigured() {
+        return /^https:\/\/script\.google\.com\/macros\/s\/[^/]+\/exec/
+          .test(WEB_APP_URL);
+      }
+
+      function setLoading(show) {
+        $("loading")
+          .classList
+          .toggle(
+            "show",
+            Boolean(show)
+          );
+      }
+
+      function toast(message) {
+        const element =
+          $("toast");
+
+        element.textContent =
+          message;
+
+        element.classList
+          .add("show");
+
+        clearTimeout(
+          toast.timer
+        );
+
+        toast.timer =
+          setTimeout(
+            function () {
+              element.classList
+                .remove("show");
+            },
+            2600
+          );
+      }
+
+      function showError(
+        id,
+        message
+      ) {
+        const element =
+          $(id);
+
+        element.textContent =
+          message || "";
+
+        element.classList
+          .toggle(
+            "show",
+            Boolean(message)
+          );
+      }
+
+      function openModal(id) {
+        $(id)
+          .classList
+          .add("show");
+      }
+
+      function closeModal(id) {
+        $(id)
+          .classList
+          .remove("show");
+      }
+
+      function saveToken(value) {
+        token =
+          value || "";
+
+        if (token) {
+          sessionStorage.setItem(
+            SESSION_KEY,
+            token
+          );
+        } else {
+          sessionStorage.removeItem(
+            SESSION_KEY
+          );
+        }
+      }
+
+      /*
+       * callbackId는 통신 응답 식별자입니다.
+       * 실제 헌혈 요청 번호 requestId와 분리되어 있습니다.
+       */
+      function backendRequest(
+        action,
+        payload
+      ) {
+        payload =
+          payload || {};
+
+        return new Promise(
+          function (
+            resolve,
+            reject
+          ) {
+            if (
+              !backendConfigured()
+            ) {
+              reject(
+                new Error(
+                  "WEB_APP_URL에 Apps Script /exec 주소를 입력해 주세요."
+                )
+              );
+
+              return;
+            }
+
+            const callbackId =
+              "cb-" +
+              Date.now() +
+              "-" +
+              Math.random()
+                .toString(36)
+                .slice(2);
+
+            const form =
+              document.createElement(
+                "form"
+              );
+
+            form.method =
+              "POST";
+
+            form.action =
+              WEB_APP_URL;
+
+            form.target =
+              "backendFrame";
+
+            form.style.display =
+              "none";
+
+            const data =
+              Object.assign(
+                {},
+                payload,
+                {
+                  action:
+                    action,
+
+                  callbackId:
+                    callbackId
+                }
+              );
+
+            Object
+              .keys(data)
+              .forEach(
+                function (key) {
+                  const input =
+                    document.createElement(
+                      "input"
+                    );
+
+                  input.type =
+                    "hidden";
+
+                  input.name =
+                    key;
+
+                  input.value =
+                    data[key] == null
+                      ? ""
+                      : String(
+                          data[key]
+                        );
+
+                  form.appendChild(
+                    input
+                  );
+                }
+              );
+
+            const timer =
+              setTimeout(
+                function () {
+                  delete pending[
+                    callbackId
+                  ];
+
+                  form.remove();
+
+                  reject(
+                    new Error(
+                      "서버 응답 시간이 초과되었습니다. Apps Script 새 버전 배포와 권한을 확인해 주세요."
+                    )
+                  );
+                },
+                30000
+              );
+
+            pending[callbackId] = {
+              resolve:
+                resolve,
+
+              reject:
+                reject,
+
+              timer:
+                timer,
+
+              form:
+                form
+            };
+
+            document.body
+              .appendChild(form);
+
+            form.submit();
+
+            setTimeout(
+              function () {
+                if (
+                  form.isConnected
+                ) {
+                  form.remove();
+                }
+              },
+              2000
+            );
+          }
+        );
+      }
+
+      window.addEventListener(
+        "message",
+
+        function (event) {
+          const data =
+            event.data;
+
+          if (
+            !data ||
+            data.source !==
+              SOURCE ||
+            !data.callbackId
+          ) {
+            return;
+          }
+
+          const job =
+            pending[
+              data.callbackId
+            ];
+
+          if (!job) {
+            return;
+          }
+
+          clearTimeout(
+            job.timer
+          );
+
+          if (
+            job.form &&
+            job.form.isConnected
+          ) {
+            job.form.remove();
+          }
+
+          delete pending[
+            data.callbackId
+          ];
+
+          if (data.ok) {
+            job.resolve(data);
+          } else {
+            job.reject(
+              new Error(
+                data.error ||
+                "서버 처리 중 오류가 발생했습니다."
+              )
+            );
+          }
+        }
+      );
+
+      function applyData(data) {
+        const previousChatIds =
+          new Set(
+            state.chatMessages.map(
+              function (message) {
+                return message.id;
+              }
+            )
+          );
+
+        state.user =
+          data.user || null;
+
+        state.requests =
+          Array.isArray(
+            data.requests
+          )
+            ? data.requests
+            : [];
+
+        state.hospitalApplications =
+          Array.isArray(
+            data.hospitalApplications
+          )
+            ? data.hospitalApplications
+            : [];
+
+        state.chatMessages =
+          Array.isArray(
+            data.chatMessages
+          )
+            ? data.chatMessages
+            : [];
+
+        state.stats =
+          Object.assign(
+            {},
+            state.stats,
+            data.stats || {}
+          );
+
+        handleNewUrgentMessages(
+          previousChatIds
+        );
+
+        render();
+      }
+
+      async function syncData(
+        showLoading
+      ) {
+        if (!token) {
+          return;
+        }
+
+        if (showLoading) {
+          setLoading(true);
+        }
+
+        try {
+          const response =
+            await backendRequest(
+              "sync",
+              {
+                token:
+                  token
+              }
+            );
+
+          applyData(
+            response.data
+          );
+        } catch (error) {
+          saveToken("");
+
+          state.user =
+            null;
+
+          state.requests =
+            [];
+
+          render();
+
+          toast(
+            error.message
+          );
+        } finally {
+          if (showLoading) {
+            setLoading(false);
+          }
+        }
+      }
+
+      async function authenticate(
+        action,
+        payload,
+        errorId,
+        successMessage
+      ) {
+        showError(
+          errorId,
+          ""
+        );
+
+        setLoading(true);
+
+        try {
+          const response =
+            await backendRequest(
+              action,
+              payload
+            );
+
+          saveToken(
+            response.token
+          );
+
+          applyData(
+            response.data
+          );
+
+          closeModal(
+            "authModal"
+          );
+
+          toast(
+            successMessage
+          );
+        } catch (error) {
+          showError(
+            errorId,
+            error.message
+          );
+        } finally {
+          setLoading(false);
+        }
+      }
+
+      async function runAction(
+        action,
+        payload,
+        successMessage
+      ) {
+        setLoading(true);
+
+        try {
+          const response =
+            await backendRequest(
+              action,
+
+              Object.assign(
+                {
+                  token:
+                    token
+                },
+                payload
+              )
+            );
+
+          if (response.data) {
+            applyData(
+              response.data
+            );
+          }
+
+          toast(
+            successMessage
+          );
+        } catch (error) {
+          toast(
+            error.message
+          );
+        } finally {
+          setLoading(false);
+        }
+      }
+
+      function roleName(role) {
+        if (
+          role === "donor"
+        ) {
+          return "헌혈자";
+        }
+
+        if (
+          role === "hospital"
+        ) {
+          return "인증병원";
+        }
+
+        return "관리자";
+      }
+
+      function formatDate(value) {
+        if (!value) {
+          return "-";
+        }
+
+        return new Date(
+          value
+        ).toLocaleString(
+          "ko-KR",
+          {
+            month: "numeric",
+            day: "numeric",
+            hour: "2-digit",
+            minute: "2-digit"
+          }
+        );
+      }
+
+      function statusInfo(request) {
+        if (
+          request.moderation ===
+          "pending"
+        ) {
+          return [
+            "승인 대기",
+            "amber"
+          ];
+        }
+
+        if (
+          request.moderation ===
+          "rejected"
+        ) {
+          return [
+            "승인 거절",
+            "red"
+          ];
+        }
+
+        if (
+          request.moderation ===
+          "hidden"
+        ) {
+          return [
+            "숨김",
+            "red"
+          ];
+        }
+
+        if (
+          request.status ===
+          "closed"
+        ) {
+          return [
+            "모집 완료",
+            "green"
+          ];
+        }
+
+        if (
+          request.status ===
+          "expired"
+        ) {
+          return [
+            "마감",
+            "gray"
+          ];
+        }
+
+        return [
+          "모집 중",
+          "blue"
+        ];
+      }
+
+      function latestUrgentMessage() {
+        return state.chatMessages
+          .filter(
+            function (message) {
+              return (
+                message.type ===
+                  "urgent" &&
+                Date.now() -
+                  Number(
+                    message.createdAt
+                  ) <
+                  86400000
+              );
+            }
+          )
+          .sort(
+            function (a, b) {
+              return (
+                Number(
+                  b.createdAt
+                ) -
+                Number(
+                  a.createdAt
+                )
+              );
+            }
+          )[0] || null;
+      }
+
+      function handleNewUrgentMessages(
+        previousChatIds
+      ) {
+        state.chatMessages
+          .filter(
+            function (message) {
+              return (
+                message.type ===
+                  "urgent" &&
+                !previousChatIds.has(
+                  message.id
+                )
+              );
+            }
+          )
+          .forEach(
+            function (message) {
+              if (
+                localStorage.getItem(
+                  URGENT_SEEN
+                ) ===
+                message.id
+              ) {
+                return;
+              }
+
+              localStorage.setItem(
+                URGENT_SEEN,
+                message.id
+              );
+
+              toast(
+                "긴급 혈액 알림이 도착했습니다."
+              );
+
+              if (
+                "Notification" in window &&
+                Notification.permission ===
+                  "granted"
+              ) {
+                new Notification(
+                  "긴급 혈액 알림",
+                  {
+                    body:
+                      message.userName +
+                      ": " +
+                      message.message
+                  }
+                );
+              }
+            }
+          );
+      }
+
+      function renderUrgentBanner() {
+        const urgent =
+          latestUrgentMessage();
+
+        const show =
+          Boolean(
+            urgent &&
+            urgent.id !==
+              localStorage.getItem(
+                URGENT_DISMISSED
+              )
+          );
+
+        $("urgentBannerWrap")
+          .classList
+          .toggle(
+            "hidden",
+            !show
+          );
+
+        if (show) {
+          $("urgentBannerTitle")
+            .textContent =
+              "긴급 혈액 알림 · " +
+              urgent.userName;
+
+          $("urgentBannerText")
+            .textContent =
+              urgent.message +
+              " (" +
+              formatDate(
+                urgent.createdAt
+              ) +
+              ")";
+        }
+      }
+
+      function renderTabs() {
+        document
+          .querySelectorAll(
+            ".tab"
+          )
+          .forEach(
+            function (button) {
+              button.classList
+                .toggle(
+                  "active",
+                  button.dataset.tab ===
+                    state.tab
+                );
+            }
+          );
+
+        [
+          "requests",
+          "my",
+          "chat",
+          "admin"
+        ].forEach(
+          function (tab) {
+            $(
+              tab + "View"
+            )
+              .classList
+              .toggle(
+                "hidden",
+                state.tab !==
+                  tab
+              );
+          }
+        );
+      }
+
+      function createRequestCard(
+        request
+      ) {
+        const user =
+          state.user;
+
+        const status =
+          statusInfo(
+            request
+          );
+
+        const applications =
+          request.applications ||
+          [];
+
+        const myApplication =
+          applications.find(
+            function (application) {
+              return (
+                application.donorId ===
+                user.id
+              );
+            }
+          );
+
+        const bloodMatches =
+          user.role ===
+            "donor" &&
+          user.blood ===
+            request.blood;
+
+        const percentage =
+          Math.min(
+            100,
+
+            Math.round(
+              request.approvedCount /
+              Math.max(
+                1,
+                request.requiredCount
+              ) *
+              100
+            )
+          );
+
+        let actions =
+          '<button class="btn" data-detail="' +
+          esc(request.id) +
+          '">상세</button>';
+
+        if (
+          user.role ===
+            "donor" &&
+          request.moderation ===
+            "approved"
+        ) {
+          if (
+            myApplication &&
+            myApplication.status ===
+              "pending"
+          ) {
+            actions +=
+              '<button class="btn amber" data-cancel="' +
+              esc(request.id) +
+              '">신청 취소</button>';
+          } else if (
+            myApplication &&
+            myApplication.status ===
+              "approved"
+          ) {
+            actions +=
+              '<span class="tag green">참여 승인 · ' +
+              esc(request.phone) +
+              "</span>";
+          } else if (
+            myApplication &&
+            myApplication.status ===
+              "rejected"
+          ) {
+            actions +=
+              '<span class="tag red">참여 거절</span>';
+          } else if (
+            request.status ===
+              "open" &&
+            bloodMatches
+          ) {
+            actions +=
+              '<button class="btn red" data-apply="' +
+              esc(request.id) +
+              '">헌혈 참여</button>';
+          } else if (
+            request.status ===
+            "open"
+          ) {
+            actions +=
+              '<button class="btn" disabled>혈액형 불일치</button>';
+          }
+
+          actions +=
+            '<button class="btn" data-report="' +
+            esc(request.id) +
+            '">신고</button>';
+        }
+
+        if (
+          user.role ===
+            "hospital" &&
+          request.hospitalId ===
+            user.id &&
+          request.status ===
+            "open"
+        ) {
+          actions +=
+            '<button class="btn danger" data-close-request="' +
+            esc(request.id) +
+            '">모집 종료</button>';
+        }
+
+        let applicationHtml =
+          "";
+
+        if (
+          (
+            user.role ===
+              "hospital" &&
+            request.hospitalId ===
+              user.id
+          ) ||
+          user.role ===
+            "admin"
+        ) {
+          applicationHtml =
+            '<div class="applications">' +
+            (
+              applications.length
+                ? applications.map(
+                    function (
+                      application
+                    ) {
+                      return (
+                        '<div class="application">' +
+
+                        "<strong>" +
+                        esc(
+                          application.name
+                        ) +
+                        " · " +
+                        esc(
+                          application.blood
+                        ) +
+                        "</strong>" +
+
+                        "<span>" +
+                        esc(
+                          application.phone
+                        ) +
+                        "</span>" +
+
+                        '<span class="tag ' +
+                        (
+                          application.status ===
+                            "approved"
+                            ? "green"
+                            : application.status ===
+                              "rejected"
+                              ? "red"
+                              : "amber"
+                        ) +
+                        '">' +
+                        esc(
+                          application.status
+                        ) +
+                        "</span>" +
+
+                        (
+                          user.role ===
+                            "hospital" &&
+                          application.status ===
+                            "pending"
+                            ? (
+                                '<span class="right">' +
+
+                                '<button class="btn green" data-app-status="approved" data-app-id="' +
+                                esc(
+                                  application.id
+                                ) +
+                                '">승인</button>' +
+
+                                '<button class="btn danger" data-app-status="rejected" data-app-id="' +
+                                esc(
+                                  application.id
+                                ) +
+                                '">거절</button>' +
+
+                                "</span>"
+                              )
+                            : ""
+                        ) +
+
+                        "</div>"
+                      );
+                    }
+                  ).join("")
+                : (
+                    '<div class="help">' +
+                    "아직 참여 신청자가 없습니다." +
+                    "</div>"
+                  )
+            ) +
+            "</div>";
+        }
+
+        return (
+          '<article class="request-card ' +
+          (
+            request.moderation ===
+              "pending"
+              ? "pending"
+              : ""
+          ) +
+          " " +
+          (
+            request.status !==
+              "open"
+              ? "closed"
+              : ""
+          ) +
+          '">' +
+
+          '<div class="card-main">' +
+
+          '<div class="blood">' +
+          esc(request.blood) +
+          "</div>" +
+
+          '<div class="card-body">' +
+
+          '<div class="tags">' +
+
+          '<span class="tag red">' +
+          esc(request.blood) +
+          "</span>" +
+
+          '<span class="tag ' +
+          status[1] +
+          '">' +
+          status[0] +
+          "</span>" +
+
+          '<span class="tag green">인증병원</span>' +
+
+          (
+            request.reports
+              ? (
+                  '<span class="tag red">' +
+                  "신고 " +
+                  request.reports +
+                  "</span>"
+                )
+              : ""
+          ) +
+
+          "</div>" +
+
+          '<div class="card-title">' +
+          esc(request.title) +
+          "</div>" +
+
+          '<div class="meta">' +
+
+          "<span>🏥 " +
+          esc(
+            request.hospitalName
+          ) +
+          "</span>" +
+
+          "<span>📍 " +
+          esc(
+            request.place
+          ) +
+          "</span>" +
+
+          "<span>⏰ " +
+          formatDate(
+            request.deadline
+          ) +
+          "</span>" +
+
+          "</div>" +
+
+          "</div>" +
+
+          '<div class="card-actions">' +
+          actions +
+          "</div>" +
+
+          "</div>" +
+
+          '<div class="progress-wrap">' +
+
+          '<div class="progress-head">' +
+
+          "<span>승인 인원</span>" +
+
+          "<span>" +
+          request.approvedCount +
+          "/" +
+          request.requiredCount +
+          "명</span>" +
+
+          "</div>" +
+
+          '<div class="progress">' +
+
+          '<span style="width:' +
+          percentage +
+          '%"></span>' +
+
+          "</div>" +
+
+          "</div>" +
+
+          '<div class="detail ' +
+          (
+            state.openId ===
+              request.id
+              ? "show"
+              : ""
+          ) +
+          '">' +
+
+          '<div class="detail-grid">' +
+
+          '<div class="detail-box">' +
+          "<strong>헌혈 조건</strong>" +
+          "<p>" +
+          esc(
+            request.criteria
+          ) +
+          "</p>" +
+          "</div>" +
+
+          '<div class="detail-box">' +
+          "<strong>상황 설명</strong>" +
+          "<p>" +
+          esc(
+            request.description ||
+            "설명 없음"
+          ) +
+          "</p>" +
+          "</div>" +
+
+          '<div class="detail-box">' +
+          "<strong>연락처</strong>" +
+          "<p>" +
+          esc(
+            request.phone
+          ) +
+          "</p>" +
+          "</div>" +
+
+          '<div class="detail-box">' +
+          "<strong>신청 현황</strong>" +
+          "<p>대기 " +
+          request.pendingCount +
+          "명 · 승인 " +
+          request.approvedCount +
+          "명</p>" +
+          "</div>" +
+
+          "</div>" +
+
+          applicationHtml +
+
+          "</div>" +
+
+          "</article>"
+        );
+      }
+
+      function getVisibleRequests() {
+        const search =
+          $("searchInput")
+            .value
+            .trim()
+            .toLowerCase();
+
+        const blood =
+          $("bloodFilter")
+            .value;
+
+        const status =
+          $("statusFilter")
+            .value;
+
+        return state.requests
+          .filter(
+            function (request) {
+              const visible =
+                state.user.role ===
+                  "admin" ||
+                request.moderation ===
+                  "approved" ||
+                (
+                  state.user.role ===
+                    "hospital" &&
+                  request.hospitalId ===
+                    state.user.id
+                );
+
+              if (!visible) {
+                return false;
+              }
+
+              if (
+                blood !== "all" &&
+                request.blood !==
+                  blood
+              ) {
+                return false;
+              }
+
+              if (
+                status !== "all" &&
+                request.status !==
+                  status
+              ) {
+                return false;
+              }
+
+              const text =
+                (
+                  request.title +
+                  " " +
+                  request.hospitalName +
+                  " " +
+                  request.place
+                ).toLowerCase();
+
+              return (
+                !search ||
+                text.includes(
+                  search
+                )
+              );
+            }
+          )
+          .sort(
+            function (a, b) {
+              return (
+                b.createdAt -
+                a.createdAt
+              );
+            }
+          );
+      }
+
+      function renderRequests() {
+        if (!state.user) {
+          return;
+        }
+
+        const requests =
+          getVisibleRequests();
+
+        $("requestCount")
+          .textContent =
+            requests.length +
+            "건";
+
+        $("requestList")
+          .innerHTML =
+            requests.length
+              ? requests.map(
+                  createRequestCard
+                ).join("")
+              : (
+                  '<div class="empty">' +
+                  "조건에 맞는 헌혈 요청이 없습니다." +
+                  "</div>"
+                );
+      }
+
+      function renderMy() {
+        if (!state.user) {
+          return;
+        }
+
+        let requests = [];
+
+        if (
+          state.user.role ===
+          "donor"
+        ) {
+          $("myTitle")
+            .textContent =
+              "내 헌혈 참여";
+
+          $("myDesc")
+            .textContent =
+              "내가 신청한 요청과 승인 상태입니다.";
+
+          requests =
+            state.requests.filter(
+              function (request) {
+                return (
+                  request.applications ||
+                  []
+                ).some(
+                  function (
+                    application
+                  ) {
+                    return (
+                      application.donorId ===
+                      state.user.id
+                    );
+                  }
+                );
+              }
+            );
+        } else if (
+          state.user.role ===
+          "hospital"
+        ) {
+          $("myTitle")
+            .textContent =
+              "우리 병원 요청";
+
+          $("myDesc")
+            .textContent =
+              "등록 요청과 참여 신청자를 관리합니다.";
+
+          requests =
+            state.requests.filter(
+              function (request) {
+                return (
+                  request.hospitalId ===
+                  state.user.id
+                );
+              }
+            );
+        } else {
+          $("myTitle")
+            .textContent =
+              "관리자 계정";
+
+          $("myDesc")
+            .textContent =
+              "관리자 관리 탭을 이용하세요.";
+        }
+
+        $("myList")
+          .innerHTML =
+            requests.length
+              ? requests.map(
+                  createRequestCard
+                ).join("")
+              : (
+                  '<div class="empty">' +
+                  "아직 표시할 활동이 없습니다." +
+                  "</div>"
+                );
+      }
+
+      function renderChat() {
+        if (!state.user) {
+          return;
+        }
+
+        const canUrgent =
+          state.user.role ===
+            "admin" ||
+          (
+            state.user.role ===
+              "hospital" &&
+            state.user.status ===
+              "approved"
+          );
+
+        $("chatUrgentWrap")
+          .classList
+          .toggle(
+            "hidden",
+            !canUrgent
+          );
+
+        if (!canUrgent) {
+          $("chatUrgent")
+            .checked =
+              false;
+        }
+
+        $("chatList")
+          .innerHTML =
+            state.chatMessages.length
+              ? state.chatMessages.map(
+                  function (message) {
+                    return (
+                      '<div class="chat-message ' +
+                      (
+                        message.userId ===
+                          state.user.id
+                          ? "mine"
+                          : ""
+                      ) +
+                      " " +
+                      (
+                        message.type ===
+                          "urgent"
+                          ? "urgent"
+                          : ""
+                      ) +
+                      '">' +
+
+                      '<div class="chat-meta">' +
+
+                      "<strong>" +
+                      esc(
+                        message.userName
+                      ) +
+                      "</strong>" +
+
+                      "<span>" +
+                      roleName(
+                        message.userRole
+                      ) +
+                      "</span>" +
+
+                      (
+                        message.type ===
+                          "urgent"
+                          ? "<span>🚨 긴급</span>"
+                          : ""
+                      ) +
+
+                      "<span>" +
+                      formatDate(
+                        message.createdAt
+                      ) +
+                      "</span>" +
+
+                      (
+                        state.user.role ===
+                          "admin"
+                          ? (
+                              '<button class="chat-delete" data-delete-chat="' +
+                              esc(
+                                message.id
+                              ) +
+                              '">삭제</button>'
+                            )
+                          : ""
+                      ) +
+
+                      "</div>" +
+
+                      '<div class="chat-text">' +
+                      esc(
+                        message.message
+                      ) +
+                      "</div>" +
+
+                      "</div>"
+                    );
+                  }
+                ).join("")
+              : (
+                  '<div class="empty">' +
+                  "아직 메시지가 없습니다." +
+                  "</div>"
+                );
+
+        if (
+          state.tab ===
+          "chat"
+        ) {
+          requestAnimationFrame(
+            function () {
+              $("chatList")
+                .scrollTop =
+                  $("chatList")
+                    .scrollHeight;
+            }
+          );
+        }
+
+        $("chatBadge")
+          .classList
+          .toggle(
+            "hidden",
+            state.tab ===
+              "chat" ||
+            !state.chatMessages.length
+          );
+
+        $("chatBadge")
+          .textContent =
+            state.chatMessages.length >
+              99
+              ? "99+"
+              : state.chatMessages.length;
+
+        if (
+          !(
+            "Notification" in
+            window
+          )
+        ) {
+          $("notificationBtn")
+            .textContent =
+              "브라우저 알림 미지원";
+
+          $("notificationBtn")
+            .disabled =
+              true;
+        } else if (
+          Notification.permission ===
+          "granted"
+        ) {
+          $("notificationBtn")
+            .textContent =
+              "긴급 알림 허용됨";
+        } else if (
+          Notification.permission ===
+          "denied"
+        ) {
+          $("notificationBtn")
+            .textContent =
+              "브라우저에서 알림 차단됨";
+        }
+      }
+
+      function renderAdmin() {
+        if (
+          !state.user ||
+          state.user.role !==
+            "admin"
+        ) {
+          return;
+        }
+
+        const hospitals =
+          state.hospitalApplications
+            .filter(
+              function (hospital) {
+                return (
+                  hospital.status ===
+                  "pending"
+                );
+              }
+            );
+
+        const requests =
+          state.requests
+            .filter(
+              function (request) {
+                return (
+                  request.moderation ===
+                  "pending"
+                );
+              }
+            );
+
+        const reports =
+          state.requests
+            .filter(
+              function (request) {
+                return (
+                  request.reports > 0 &&
+                  request.moderation !==
+                    "hidden"
+                );
+              }
+            );
+
+        $("hospitalPendingCount")
+          .textContent =
+            hospitals.length;
+
+        $("requestPendingCount")
+          .textContent =
+            requests.length;
+
+        $("reportCount")
+          .textContent =
+            reports.length;
+
+        $("hospitalAdminList")
+          .innerHTML =
+            hospitals.length
+              ? hospitals.map(
+                  function (hospital) {
+                    return (
+                      '<div class="admin-item">' +
+
+                      "<strong>" +
+                      esc(
+                        hospital.hospitalName
+                      ) +
+                      "</strong>" +
+
+                      "<p>" +
+                      esc(
+                        hospital.manager
+                      ) +
+                      " · " +
+                      esc(
+                        hospital.dept
+                      ) +
+                      "\n" +
+                      esc(
+                        hospital.phone
+                      ) +
+                      " · " +
+                      esc(
+                        hospital.email
+                      ) +
+                      "\n" +
+                      esc(
+                        hospital.address
+                      ) +
+                      "\n인증자료: " +
+                      esc(
+                        hospital.proof
+                      ) +
+                      "</p>" +
+
+                      '<button class="btn green" data-review-hospital="approved" data-id="' +
+                      esc(
+                        hospital.id
+                      ) +
+                      '">승인</button> ' +
+
+                      '<button class="btn danger" data-review-hospital="rejected" data-id="' +
+                      esc(
+                        hospital.id
+                      ) +
+                      '">거절</button>' +
+
+                      "</div>"
+                    );
+                  }
+                ).join("")
+              : (
+                  '<div class="help">' +
+                  "승인 대기 병원이 없습니다." +
+                  "</div>"
+                );
+
+        $("requestAdminList")
+          .innerHTML =
+            requests.length
+              ? requests.map(
+                  function (request) {
+                    return (
+                      '<div class="admin-item">' +
+
+                      "<strong>" +
+                      esc(
+                        request.title
+                      ) +
+                      " · " +
+                      esc(
+                        request.blood
+                      ) +
+                      "</strong>" +
+
+                      "<p>" +
+                      esc(
+                        request.hospitalName
+                      ) +
+                      "\n" +
+                      esc(
+                        request.place
+                      ) +
+                      "\n" +
+                      esc(
+                        request.criteria
+                      ) +
+                      "\n" +
+                      esc(
+                        request.description
+                      ) +
+                      "</p>" +
+
+                      '<button class="btn green" data-review-request="approved" data-id="' +
+                      esc(
+                        request.id
+                      ) +
+                      '">공개 승인</button> ' +
+
+                      '<button class="btn danger" data-review-request="rejected" data-id="' +
+                      esc(
+                        request.id
+                      ) +
+                      '">거절</button>' +
+
+                      "</div>"
+                    );
+                  }
+                ).join("")
+              : (
+                  '<div class="help">' +
+                  "승인 대기 요청이 없습니다." +
+                  "</div>"
+                );
+
+        $("reportAdminList")
+          .innerHTML =
+            reports.length
+              ? reports.map(
+                  function (request) {
+                    return (
+                      '<div class="admin-item">' +
+
+                      "<strong>" +
+                      esc(
+                        request.title
+                      ) +
+                      "</strong>" +
+
+                      "<p>" +
+                      esc(
+                        request.hospitalName
+                      ) +
+                      " · 신고 " +
+                      request.reports +
+                      "건</p>" +
+
+                      '<button class="btn danger" data-hide="' +
+                      esc(
+                        request.id
+                      ) +
+                      '">게시글 숨김</button>' +
+
+                      "</div>"
+                    );
+                  }
+                ).join("")
+              : (
+                  '<div class="help">' +
+                  "처리할 신고가 없습니다." +
+                  "</div>"
+                );
+      }
+
+      function render() {
+        const user =
+          state.user;
+
+        const loggedIn =
+          Boolean(user);
+
+        $("profileChip")
+          .classList
+          .toggle(
+            "hidden",
+            !loggedIn
+          );
+
+        $("logoutBtn")
+          .classList
+          .toggle(
+            "hidden",
+            !loggedIn
+          );
+
+        $("openAuth")
+          .classList
+          .toggle(
+            "hidden",
+            loggedIn
+          );
+
+        $("accountPanel")
+          .classList
+          .toggle(
+            "hidden",
+            !loggedIn
+          );
+
+        $("statOpen")
+          .textContent =
+            state.stats.open || 0;
+
+        $("statMatched")
+          .textContent =
+            state.stats.matched || 0;
+
+        $("statHospitals")
+          .textContent =
+            state.stats.hospitals || 0;
+
+        if (!loggedIn) {
+          $("notice")
+            .textContent =
+              "로그인하면 역할별 기능이 활성화됩니다.";
+
+          $("requestList")
+            .innerHTML =
+              '<div class="empty">' +
+              "로그인 후 헌혈 요청을 확인할 수 있습니다." +
+              "</div>";
+
+          $("urgentBannerWrap")
+            .classList
+            .add("hidden");
+
+          return;
+        }
+
+        $("profileChip")
+          .textContent =
+            roleName(
+              user.role
+            ) +
+            " · " +
+            (
+              user.hospitalName ||
+              user.name ||
+              user.email
+            );
+
+        $("adminTab")
+          .classList
+          .toggle(
+            "hidden",
+            user.role !==
+              "admin"
+          );
+
+        $("createRequestBtn")
+          .classList
+          .toggle(
+            "hidden",
+            !(
+              user.role ===
+                "hospital" &&
+              user.status ===
+                "approved"
+            )
+          );
+
+        const accountBox =
+          $("accountBox");
+
+        accountBox.className =
+          "account " +
+          user.role;
+
+        accountBox.innerHTML =
+          "<strong>" +
+          esc(
+            user.hospitalName ||
+            user.name ||
+            user.email
+          ) +
+          "</strong>" +
+
+          roleName(
+            user.role
+          ) +
+
+          (
+            user.blood
+              ? " · " +
+                esc(
+                  user.blood
+                )
+              : ""
+          ) +
+
+          (
+            user.role ===
+              "hospital"
+              ? " · " +
+                esc(
+                  user.status
+                )
+              : ""
+          );
+
+        if (
+          user.role ===
+          "donor"
+        ) {
+          $("notice")
+            .textContent =
+              "내 혈액형은 " +
+              user.blood +
+              "입니다. 일치하는 모집 중 요청에 참여할 수 있습니다.";
+        } else if (
+          user.role ===
+            "hospital" &&
+          user.status ===
+            "pending"
+        ) {
+          $("notice")
+            .textContent =
+              "병원 인증 심사 중입니다. 승인 전에는 요청 등록 기능이 잠겨 있습니다.";
+        } else if (
+          user.role ===
+            "hospital" &&
+          user.status ===
+            "rejected"
+        ) {
+          $("notice")
+            .textContent =
+              "병원 인증이 거절되었습니다. 인증 자료를 관리자에게 확인해 주세요.";
+        } else if (
+          user.role ===
+          "hospital"
+        ) {
+          $("notice")
+            .textContent =
+              "인증 병원입니다. 요청 등록과 신청자 관리가 가능합니다.";
+        } else {
+          $("notice")
+            .textContent =
+              "관리자 계정입니다. 병원 인증, 요청 승인, 신고를 검토해 주세요.";
+        }
+
+        renderTabs();
+        renderRequests();
+        renderMy();
+        renderChat();
+        renderUrgentBanner();
+        renderAdmin();
+      }
+
+      function showAuthStep(id) {
+        $("authMenu")
+          .classList
+          .add("hidden");
+
+        document
+          .querySelectorAll(
+            ".auth-step"
+          )
+          .forEach(
+            function (step) {
+              step.classList
+                .remove("show");
+            }
+          );
+
+        $(id)
+          .classList
+          .add("show");
+      }
+
+      function showAuthMenu() {
+        $("authMenu")
+          .classList
+          .remove("hidden");
+
+        document
+          .querySelectorAll(
+            ".auth-step"
+          )
+          .forEach(
+            function (step) {
+              step.classList
+                .remove("show");
+            }
+          );
+
+        document
+          .querySelectorAll(
+            ".form-error"
+          )
+          .forEach(
+            function (element) {
+              element.classList
+                .remove("show");
+            }
+          );
+      }
+
+      function setDefaultDeadline() {
+        const date =
+          new Date(
+            Date.now() +
+            86400000
+          );
+
+        date.setMinutes(
+          date.getMinutes() -
+          date.getTimezoneOffset()
+        );
+
+        $("requestDeadline")
+          .value =
+            date
+              .toISOString()
+              .slice(0, 16);
+      }
+
+      document.addEventListener(
+        "click",
+
+        function (event) {
+          const button =
+            event.target.closest(
+              "button"
+            );
+
+          if (!button) {
+            return;
+          }
+
+          if (
+            button.dataset.close
+          ) {
+            closeModal(
+              button.dataset.close
+            );
+
+            return;
+          }
+
+          if (
+            button.dataset.auth
+          ) {
+            showAuthStep(
+              button.dataset.auth
+            );
+
+            return;
+          }
+
+          if (
+            button.hasAttribute(
+              "data-auth-back"
+            )
+          ) {
+            showAuthMenu();
+            return;
+          }
+
+          if (
+            button.dataset.tab
+          ) {
+            state.tab =
+              button.dataset.tab;
+
+            renderTabs();
+            renderChat();
+
+            return;
+          }
+
+          if (
+            button.dataset.detail
+          ) {
+            state.openId =
+              state.openId ===
+                button.dataset.detail
+                ? null
+                : button.dataset.detail;
+
+            render();
+            return;
+          }
+
+          if (
+            button.dataset.apply
+          ) {
+            runAction(
+              "applyRequest",
+
+              {
+                requestId:
+                  button.dataset.apply
+              },
+
+              "헌혈 참여를 신청했습니다."
+            );
+
+            return;
+          }
+
+          if (
+            button.dataset.cancel &&
+            confirm(
+              "참여 신청을 취소할까요?"
+            )
+          ) {
+            runAction(
+              "cancelApplication",
+
+              {
+                requestId:
+                  button.dataset.cancel
+              },
+
+              "참여 신청을 취소했습니다."
+            );
+
+            return;
+          }
+
+          if (
+            button.dataset.report
+          ) {
+            const reason =
+              prompt(
+                "신고 사유를 입력해 주세요.",
+                "내용 확인 필요"
+              );
+
+            if (reason) {
+              runAction(
+                "reportRequest",
+
+                {
+                  requestId:
+                    button.dataset.report,
+
+                  reason:
+                    reason
+                },
+
+                "신고가 접수되었습니다."
+              );
+            }
+
+            return;
+          }
+
+          if (
+            button.dataset
+              .closeRequest &&
+            confirm(
+              "모집을 종료할까요?"
+            )
+          ) {
+            runAction(
+              "closeRequest",
+
+              {
+                requestId:
+                  button.dataset
+                    .closeRequest
+              },
+
+              "모집을 종료했습니다."
+            );
+
+            return;
+          }
+
+          if (
+            button.dataset
+              .reviewHospital
+          ) {
+            runAction(
+              "reviewHospital",
+
+              {
+                applicationId:
+                  button.dataset.id,
+
+                status:
+                  button.dataset
+                    .reviewHospital
+              },
+
+              button.dataset
+                .reviewHospital ===
+                "approved"
+                ? "병원 인증을 승인했습니다."
+                : "병원 인증을 거절했습니다."
+            );
+
+            return;
+          }
+
+          if (
+            button.dataset
+              .reviewRequest
+          ) {
+            if (
+              !confirm(
+                button.dataset
+                  .reviewRequest ===
+                  "approved"
+                  ? "이 요청을 전체 회원에게 공개할까요?"
+                  : "이 요청을 거절할까요?"
+              )
+            ) {
+              return;
+            }
+
+            /*
+             * 실제 요청 번호는 requestId로 전달합니다.
+             * 통신 번호는 backendRequest에서 callbackId로 따로 생성됩니다.
+             */
+            runAction(
+              "reviewRequest",
+
+              {
+                requestId:
+                  button.dataset.id,
+
+                status:
+                  button.dataset
+                    .reviewRequest
+              },
+
+              button.dataset
+                .reviewRequest ===
+                "approved"
+                ? "요청 공개를 승인했습니다."
+                : "요청을 거절했습니다."
+            );
+
+            return;
+          }
+
+          if (
+            button.dataset
+              .appStatus
+          ) {
+            runAction(
+              "reviewApplication",
+
+              {
+                applicationId:
+                  button.dataset
+                    .appId,
+
+                status:
+                  button.dataset
+                    .appStatus
+              },
+
+              button.dataset
+                .appStatus ===
+                "approved"
+                ? "참여자를 승인했습니다."
+                : "참여 신청을 거절했습니다."
+            );
+
+            return;
+          }
+
+          if (
+            button.dataset
+              .deleteChat &&
+            confirm(
+              "이 채팅 메시지를 삭제할까요?"
+            )
+          ) {
+            runAction(
+              "deleteChat",
+
+              {
+                chatId:
+                  button.dataset
+                    .deleteChat
+              },
+
+              "채팅 메시지를 삭제했습니다."
+            );
+
+            return;
+          }
+
+          if (
+            button.dataset.hide &&
+            confirm(
+              "이 게시글을 숨길까요?"
+            )
+          ) {
+            runAction(
+              "hideRequest",
+
+              {
+                requestId:
+                  button.dataset.hide
+              },
+
+              "게시글을 숨겼습니다."
+            );
+          }
+        }
+      );
+
+      $("openAuth")
+        .addEventListener(
+          "click",
+
+          function () {
+            showAuthMenu();
+
+            openModal(
+              "authModal"
+            );
+          }
+        );
+
+      $("logoutBtn")
+        .addEventListener(
+          "click",
+
+          async function () {
+            setLoading(true);
+
+            try {
+              if (token) {
+                await backendRequest(
+                  "logout",
+                  {
+                    token:
+                      token
+                  }
+                );
+              }
+            } catch (error) {
+              console.warn(
+                error
+              );
+            }
+
+            saveToken("");
+
+            state.user =
+              null;
+
+            state.requests =
+              [];
+
+            state.tab =
+              "requests";
+
+            render();
+
+            setLoading(false);
+
+            toast(
+              "로그아웃되었습니다."
+            );
+          }
+        );
+
+      $("refreshBtn")
+        .addEventListener(
+          "click",
+
+          function () {
+            if (token) {
+              syncData(true);
+            } else {
+              toast(
+                "먼저 로그인해 주세요."
+              );
+            }
+          }
+        );
+
+      $("chatForm")
+        .addEventListener(
+          "submit",
+
+          async function (event) {
+            event.preventDefault();
+
+            const message =
+              $("chatInput")
+                .value
+                .trim();
+
+            if (!message) {
+              toast(
+                "메시지를 입력해 주세요."
+              );
+
+              return;
+            }
+
+            const urgent =
+              $("chatUrgent")
+                .checked;
+
+            await runAction(
+              "sendChat",
+
+              {
+                message:
+                  message,
+
+                type:
+                  urgent
+                    ? "urgent"
+                    : "normal"
+              },
+
+              urgent
+                ? "긴급 혈액 알림을 보냈습니다."
+                : "메시지를 보냈습니다."
+            );
+
+            $("chatInput")
+              .value =
+                "";
+
+            $("chatUrgent")
+              .checked =
+                false;
+          }
+        );
+
+      $("notificationBtn")
+        .addEventListener(
+          "click",
+
+          async function () {
+            if (
+              !(
+                "Notification" in
+                window
+              )
+            ) {
+              toast(
+                "이 브라우저는 알림을 지원하지 않습니다."
+              );
+
+              return;
+            }
+
+            try {
+              const permission =
+                await Notification
+                  .requestPermission();
+
+              if (
+                permission ===
+                  "granted"
+              ) {
+                toast(
+                  "긴급 브라우저 알림을 허용했습니다."
+                );
+              } else {
+                toast(
+                  "브라우저 알림이 허용되지 않았습니다."
+                );
+              }
+
+              renderChat();
+            } catch (error) {
+              toast(
+                "알림 권한을 요청할 수 없습니다."
+              );
+            }
+          }
+        );
+
+      $("dismissUrgentBtn")
+        .addEventListener(
+          "click",
+
+          function () {
+            const urgent =
+              latestUrgentMessage();
+
+            if (urgent) {
+              localStorage.setItem(
+                URGENT_DISMISSED,
+                urgent.id
+              );
+            }
+
+            renderUrgentBanner();
+          }
+        );
+
+      $("createRequestBtn")
+        .addEventListener(
+          "click",
+
+          function () {
+            $("requestPhone")
+              .value =
+                state.user &&
+                state.user.phone
+                  ? state.user.phone
+                  : "";
+
+            setDefaultDeadline();
+
+            showError(
+              "requestError",
+              ""
+            );
+
+            openModal(
+              "requestModal"
+            );
+          }
+        );
+
+      [
+        "searchInput",
+        "bloodFilter",
+        "statusFilter"
+      ].forEach(
+        function (id) {
+          $(id)
+            .addEventListener(
+              id ===
+                "searchInput"
+                ? "input"
+                : "change",
+
+              renderRequests
+            );
+        }
+      );
+
+      document
+        .querySelectorAll(
+          ".modal-overlay"
+        )
+        .forEach(
+          function (modal) {
+            modal.addEventListener(
+              "click",
+
+              function (event) {
+                if (
+                  event.target ===
+                  modal
+                ) {
+                  closeModal(
+                    modal.id
+                  );
+                }
+              }
+            );
+          }
+        );
+
+      $("donorSignupForm")
+        .addEventListener(
+          "submit",
+
+          function (event) {
+            event.preventDefault();
+
+            const password =
+              $("donorPassword")
+                .value;
+
+            if (
+              password !==
+              $("donorPassword2")
+                .value
+            ) {
+              showError(
+                "donorSignupError",
+                "비밀번호 확인이 일치하지 않습니다."
+              );
+
+              return;
+            }
+
+            authenticate(
+              "registerDonor",
+
+              {
+                loginId:
+                  $("donorSignupId")
+                    .value,
+
+                password:
+                  password,
+
+                name:
+                  $("donorName")
+                    .value,
+
+                blood:
+                  $("donorBlood")
+                    .value,
+
+                region:
+                  $("donorRegion")
+                    .value,
+
+                phone:
+                  $("donorPhone")
+                    .value,
+
+                notify:
+                  $("donorNotify")
+                    .value
+              },
+
+              "donorSignupError",
+              "헌혈자 회원가입이 완료되었습니다."
+            );
+          }
+        );
+
+      $("donorLoginForm")
+        .addEventListener(
+          "submit",
+
+          function (event) {
+            event.preventDefault();
+
+            authenticate(
+              "login",
+
+              {
+                role:
+                  "donor",
+
+                loginId:
+                  $("donorLoginId")
+                    .value,
+
+                password:
+                  $("donorLoginPassword")
+                    .value
+              },
+
+              "donorLoginError",
+              "헌혈자로 로그인했습니다."
+            );
+          }
+        );
+
+      $("hospitalSignupForm")
+        .addEventListener(
+          "submit",
+
+          function (event) {
+            event.preventDefault();
+
+            const password =
+              $("hospitalPassword")
+                .value;
+
+            if (
+              password !==
+              $("hospitalPassword2")
+                .value
+            ) {
+              showError(
+                "hospitalSignupError",
+                "비밀번호 확인이 일치하지 않습니다."
+              );
+
+              return;
+            }
+
+            authenticate(
+              "registerHospital",
+
+              {
+                loginId:
+                  $("hospitalSignupId")
+                    .value,
+
+                password:
+                  password,
+
+                email:
+                  $("hospitalEmail")
+                    .value,
+
+                hospitalName:
+                  $("hospitalName")
+                    .value,
+
+                dept:
+                  $("hospitalDept")
+                    .value,
+
+                manager:
+                  $("hospitalManager")
+                    .value,
+
+                position:
+                  $("hospitalPosition")
+                    .value,
+
+                phone:
+                  $("hospitalPhone")
+                    .value,
+
+                address:
+                  $("hospitalAddress")
+                    .value,
+
+                proof:
+                  $("hospitalProof")
+                    .value
+              },
+
+              "hospitalSignupError",
+              "병원 계정과 인증 신청이 등록되었습니다."
+            );
+          }
+        );
+
+      $("hospitalLoginForm")
+        .addEventListener(
+          "submit",
+
+          function (event) {
+            event.preventDefault();
+
+            authenticate(
+              "login",
+
+              {
+                role:
+                  "hospital",
+
+                loginId:
+                  $("hospitalLoginId")
+                    .value,
+
+                password:
+                  $("hospitalLoginPassword")
+                    .value
+              },
+
+              "hospitalLoginError",
+              "병원 계정으로 로그인했습니다."
+            );
+          }
+        );
+
+      $("adminLoginForm")
+        .addEventListener(
+          "submit",
+
+          function (event) {
+            event.preventDefault();
+
+            authenticate(
+              "adminLogin",
+
+              {
+                email:
+                  ADMIN_EMAIL,
+
+                code:
+                  $("adminCode")
+                    .value
+              },
+
+              "adminLoginError",
+              "관리자 화면을 열었습니다."
+            );
+          }
+        );
+
+      $("requestForm")
+        .addEventListener(
+          "submit",
+
+          async function (event) {
+            event.preventDefault();
+
+            showError(
+              "requestError",
+              ""
+            );
+
+            setLoading(true);
+
+            try {
+              const response =
+                await backendRequest(
+                  "createRequest",
+
+                  {
+                    token:
+                      token,
+
+                    title:
+                      $("requestTitle")
+                        .value,
+
+                    blood:
+                      $("requestBlood")
+                        .value,
+
+                    place:
+                      $("requestPlace")
+                        .value,
+
+                    criteria:
+                      $("requestCriteria")
+                        .value,
+
+                    description:
+                      $("requestDescription")
+                        .value,
+
+                    phone:
+                      $("requestPhone")
+                        .value,
+
+                    requiredCount:
+                      $("requestRequired")
+                        .value,
+
+                    deadline:
+                      new Date(
+                        $("requestDeadline")
+                          .value
+                      ).getTime()
+                  }
+                );
+
+              applyData(
+                response.data
+              );
+
+              closeModal(
+                "requestModal"
+              );
+
+              event.target
+                .reset();
+
+              setDefaultDeadline();
+
+              toast(
+                "요청이 관리자 승인 대기로 등록되었습니다."
+              );
+            } catch (error) {
+              showError(
+                "requestError",
+                error.message
+              );
+            } finally {
+              setLoading(false);
+            }
+          }
+        );
+
+      function distanceKm(
+        lat1,
+        lng1,
+        lat2,
+        lng2
+      ) {
+        const radius =
+          6371;
+
+        const lat =
+          (
+            lat2 -
+            lat1
+          ) *
+          Math.PI /
+          180;
+
+        const lng =
+          (
+            lng2 -
+            lng1
+          ) *
+          Math.PI /
+          180;
+
+        const value =
+          Math.sin(
+            lat / 2
+          ) ** 2 +
+          Math.cos(
+            lat1 *
+            Math.PI /
+            180
+          ) *
+          Math.cos(
+            lat2 *
+            Math.PI /
+            180
+          ) *
+          Math.sin(
+            lng / 2
+          ) ** 2;
+
+        return (
+          2 *
+          radius *
+          Math.atan2(
+            Math.sqrt(value),
+            Math.sqrt(
+              1 -
+              value
+            )
+          )
+        );
+      }
+
+      function initPlaces() {
+        PLACES.forEach(
+          function (place) {
+            const option =
+              document.createElement(
+                "option"
+              );
+
+            option.value =
+              place.name;
+
+            option.textContent =
+              place.name +
+              " · " +
+              place.type;
+
+            $("requestPlace")
+              .appendChild(
+                option
+              );
+          }
+        );
+      }
+
+      function initMap() {
+        if (
+          typeof L ===
+          "undefined"
+        ) {
+          $("map")
+            .innerHTML =
+              '<div class="empty">' +
+              "지도를 불러오지 못했습니다." +
+              "</div>";
+
+          return;
+        }
+
+        const map =
+          L.map(
+            "map",
+            {
+              scrollWheelZoom:
+                false
+            }
+          ).setView(
+            [
+              33.47,
+              126.52
+            ],
+            10
+          );
+
+        L.tileLayer(
+          "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+
+          {
+            maxZoom:
+              19,
+
+            attribution:
+              "&copy; OpenStreetMap"
+          }
+        ).addTo(map);
+
+        PLACES.forEach(
+          function (place) {
+            L.marker(
+              [
+                place.lat,
+                place.lng
+              ]
+            )
+              .addTo(map)
+              .bindPopup(
+                "<strong>" +
+                esc(
+                  place.name
+                ) +
+                "</strong><br>" +
+                esc(
+                  place.type
+                )
+              );
+          }
+        );
+
+        const currentMarker =
+          L.circleMarker(
+            [
+              state.userPos.lat,
+              state.userPos.lng
+            ],
+
+            {
+              radius:
+                8,
+
+              weight:
+                3,
+
+              color:
+                "#ffffff",
+
+              fillColor:
+                "#2563eb",
+
+              fillOpacity:
+                1
+            }
+          ).addTo(map);
+
+        function setPosition(
+          position,
+          fallback
+        ) {
+          state.userPos =
+            position;
+
+          currentMarker
+            .setLatLng(
+              [
+                position.lat,
+                position.lng
+              ]
+            );
+
+          const nearest =
+            PLACES.map(
+              function (place) {
+                return {
+                  place:
+                    place,
+
+                  distance:
+                    distanceKm(
+                      position.lat,
+                      position.lng,
+                      place.lat,
+                      place.lng
+                    )
+                };
+              }
+            )
+              .sort(
+                function (a, b) {
+                  return (
+                    a.distance -
+                    b.distance
+                  );
+                }
+              )[0];
+
+          $("nearestText")
+            .textContent =
+              "가장 가까운 장소: " +
+              nearest.place.name +
+              " · 약 " +
+              nearest.distance
+                .toFixed(1) +
+              "km" +
+              (
+                fallback
+                  ? " (제주시청 기준)"
+                  : ""
+              );
+        }
+
+        if (
+          navigator.geolocation
+        ) {
+          navigator
+            .geolocation
+            .getCurrentPosition(
+              function (position) {
+                setPosition(
+                  {
+                    lat:
+                      position.coords
+                        .latitude,
+
+                    lng:
+                      position.coords
+                        .longitude
+                  },
+                  false
+                );
+              },
+
+              function () {
+                setPosition(
+                  state.userPos,
+                  true
+                );
+              },
+
+              {
+                timeout:
+                  5000,
+
+                maximumAge:
+                  60000
+              }
+            );
+        } else {
+          setPosition(
+            state.userPos,
+            true
+          );
+        }
+      }
+
+      function updateClock() {
+        $("nowText")
+          .textContent =
+            new Date()
+              .toLocaleTimeString(
+                "ko-KR",
+                {
+                  hour:
+                    "2-digit",
+
+                  minute:
+                    "2-digit"
+                }
+              );
+      }
+
+      async function initialize() {
+        initPlaces();
+        setDefaultDeadline();
+        updateClock();
+
+        setInterval(
+          updateClock,
+          30000
+        );
+
+        render();
+        initMap();
+
+        if (token) {
+          await syncData(false);
+        } else {
+          showAuthMenu();
+
+          openModal(
+            "authModal"
+          );
+        }
+
+        if (
+          !backendConfigured()
+        ) {
+          toast(
+            "WEB_APP_URL에 Apps Script /exec 주소를 입력해 주세요."
+          );
+        }
+
+        setInterval(
+          function () {
+            if (token) {
+              syncData(false);
+            }
+          },
+          20000
+        );
+
+        document.addEventListener(
+          "visibilitychange",
+
+          function () {
+            if (
+              !document.hidden &&
+              token
+            ) {
+              syncData(false);
+            }
+          }
+        );
+      }
+
+      initialize();
+    })();
+  </script>
+</body>
+</html>
